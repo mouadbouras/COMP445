@@ -2,6 +2,8 @@
 
 const net   = require('net');
 const yargs = require('yargs');
+var url = require('url');
+
 //const fs = require('fs'),    
 //      path = require('path');   
 
@@ -24,15 +26,14 @@ function handleClient(socket) {
   console.log('New client from %j', socket.address());
   socket
       .on('data', buf => {        
-        //console.log('poop');
-        // just echo what received
         var request = buf.toString().toLowerCase();   
         buf = null;
-        console.log(socket);
+        //console.log(socket);
         var read = request.split(' ');
         var method = read[0]; 
-        var uri = read[1];
-        var http = read[2];
+        var verbose = read[1]
+        var uri = read[2];
+        var http = read[3];
         var requestData  = "";
         var response = "";
         
@@ -51,53 +52,25 @@ function handleClient(socket) {
         }else{
             if(typeof method != 'undefined' && method.trim() == 'get' )    
             {
-                                  
-                  response = "\r\n\n" +
-                  "HTTP/1.0 200 OK" + "\r\n" +
-                  "Date: " + Date()          + "\r\n" +     
-                  "Server: Node"             + "\r\n" +
-                  "Connection: Closed "+ "\r\n" ; 
+                var parsedURL = url.parse(uri, true);                
+                var  JSONresponse = {
+                    data : {
+                        "args": parsedURL.query, 
+                        "headers": {
+                        "Accept": "*.*", 
+                        "Connection": "close", 
+                        "Host": parseURL.host, 
+                        "User-Agent": "httpc 1.0"
+                        }, 
+                        "origin": socket.localAddress, 
+                        "url": uri
+                    }
+                  }
+                  JSONresponse[]
 
-                //   var filePath = path.join(__dirname, 'sample1.html');    
-                //   var file = ""; 
-                //   fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data){
-                //   if (!err) {
-                //     socket.write(response + "\r\n" + data);
-                //   } else {
-                //       file = "<html><body>404 Not Found</body></html>";
-                //   }
-                //   });
-                  //"Content-Length: " + Buffer.byteLength(data, ['utf-8']) + "\r\n\n" +          
-                  //data ;                                    
-
-                //response += uri.slice(uri.indexOf('/')+1).replace('/','\\');
-                var body= parseURL(uri);
-                if (body!= "")
-                {
-                    response += "Content-length : " + Buffer.byteLength(body)+ "\r\n" ;         
-                    response += "Content-Type: text/json " + "\r\n" ;   
-                    response += "Connection: Closed "+ "\r\n" ;                     
-                    response += "Values : " + body; 
-                }
+                  response += JSON.stringify(JSONresponse);
   
-                // if(uri.indexOf('?') > 0 )
-                // {
-                //     var items = uri.slice(uri.indexOf('?')+1).split('&');
-                //     var itemsObj ={};
-                    
-                //     for(var i = 0 ; i < items.length ; i++ ){
-                //         //console.log(items[i]);
-                //       var tmp = items[i].split('=');
-                //       itemsObj[tmp[0]] = tmp[1];
-                //     }
-                //     response += "Content-length : " + Buffer.byteLength(JSON.stringify(itemsObj))+ "\r\n" ;         
-                //     response += "Content-Type: text/json " + "\r\n" ;   
-                //     response += "Connection: Closed "+ "\r\n" ;                     
-                //     response += "Values : " + JSON.stringify(itemsObj);                    
-                // }
-                //response += "Connection: Closed "; 
-                
-                //socket.destroy();                
+               
             }
             else if(typeof method != 'undefined' && method.trim() == 'head' )    
             {
