@@ -2,14 +2,6 @@
 'use strict';
 
 /** Http Server comunication Section */
-// const net = require('net');
-// const yargs = require('yargs');
-
-// const argv = yargs.usage('node echoclient.js [--host host] [--port port]')
-//     .default('host', 'localhost')
-//     .default('port', 8007)
-//     .help('help')
-//     .argv;
    
 /**
 * Module dependencies.
@@ -24,36 +16,21 @@ program
 program.command('get <req>')
 .description('Get executes a HTTP GET request for a given URL.')
 .option('-v, --verb','Prints the detail of the response such as protocol, status, and headers.')
-.option('-h, --header <keyvalue>','Associates headers to HTTP Request with the format \'key:value\'')
+.option('-h, --header <keyvalue>','Associates headers to HTTP Request with the format \'key:value\'', list)
 .action(function(req,optional){
     var url = urlParser.parse(req); 
     var vrb = (optional.verb==true);
-    var header = (optional.header) ? optional.header : "" ;
+    var header = (optional.header) ? optional.header : null ;
     var qs = (url.search != null) ? url.search : "";
     
     if(url.host != null && url.pathname != null)
     {
-        //console.log('1' + url.pathname+url.search );        
-        client.getRquest(url.host , url.pathname+qs , vrb,header);
+        client.getRequest(url.host , url.pathname+qs , vrb,header);
     }
     else{
-        //console.log('2');
-        client.getRquest(url.pathname , "/" , vrb,header);    
-        //console.log("Invalid URL");
+        client.getRequest(url.pathname , "/" , vrb,header);    
     }
 
-    //client.getRquest(url.host , url.pathname+url.search , vrb,header);
-
-    // if(optional.verb)
-    // {
-    //     console.log(optional.verb);
-    // }
-    // if(optional.hora)
-    // {
-    //     console.log(optional.header);
-    // }    
-
-    //executeCommand(req);
 });
 
 program.command('post <req>')
@@ -64,16 +41,20 @@ program.command('post <req>')
 .option('-d, --data <req>','Associates an inline data to the body HTTP POST request.')
 .option('-f, --file <req>','Associates the content of a file to the body HTTP POST request.')
 .action(function(req,optional){
-  console.log('.action() allows us to implement the command');
-  console.log('Post %s', req);
 
-  if(optional.header){
-    console.log(' list: %j', optional.header);    
-    //console.log('header: ');
-    //console.log( optional.header[0] );
-    
+  var url = urlParser.parse(req); 
+  var vrb = (optional.verb==true);
+  var header = (optional.header) ? optional.header : null ;
+  var qs = (url.search != null) ? url.search : "";  
+  var content = (optional.data) ? optional.data : "" ;
+
+  if(url.host != null && url.pathname != null)
+  {
+      client.postRequest(url.host , url.pathname+qs , vrb,header,content);
   }
-  
+  else{
+      client.postRequest(url.pathname , "/" , vrb,header,content);    
+  }  
 
 });
 
@@ -86,17 +67,19 @@ program.command('help [optional]')
 .action(function(optional){
     if(optional){
         if (optional.toLowerCase() == "get") {
-            console.log('usage: httpc get [-v] [-h key:value] URL\n\n' + 
+            console.log('\nUsage: httpc get [-v] [-h key:value] URL\n\n' + 
                         'Get executes a HTTP GET request for a given URL.\n\n' + 
                         '   -v Prints the detail of the response such as protocol, status, and headers.\n' + 
-                        '   -h key:value Associates headers to HTTP Request with the format \'key:value\'.\n'
+                        '   -h key:value Associates headers to HTTP Request with the format \'key:value\'.\n\n'
                     ); 
         }
         else if (optional.toLowerCase() == "post") {
-            console.log('usage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n\n' + 
+            console.log('\nUsage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n\n' + 
             'Get executes a HTTP GET request for a given URL.\n\n' + 
             '   -v Prints the detail of the response such as protocol, status, and headers.\n' + 
-            '   -h key:value Associates headers to HTTP Request with the format \'key:value\'.\n'
+            '   -h key:value Associates headers to HTTP Request with the format \'key:value\'.\n' +
+            '   -d string Associates an inline data to the body HTTP POST request.\n' +
+            '   -f file Associates the content of a file to the body HTTP POST request.\n\n'
         ); 
         }
         else{
@@ -104,29 +87,18 @@ program.command('help [optional]')
         }
     }
     else{
-        console.log('\n\nhttpc is a curl-like application but supports HTTP protocol only.\n' + 
+        console.log('\nhttpc is a curl-like application but supports HTTP protocol only.\n' + 
         'Usage:\n' + 
         '   httpc command [arguments]\n'+
         'The commands are: \n' +
         '   get executes a HTTP GET request and prints the response.\n'+
         '   post executes a HTTP POST request and prints the response.\n'+
         '   help prints this screen.\n\n'+
-        'Use "httpc help [command]" for more information about a command.');
+        'Use "httpc help [command]" for more information about a command.\n\n');
     }
 });
 
-// program.on('--help', function(){
-//     console.log('  Examples:');
-//     console.log('');
-//     console.log('    $ custom-help --help');
-//     console.log('    $ custom-help -h');
-//     console.log('');
-//   });
-
 program.parse(process.argv); 
-
-
-
 
 function list(val) {
     return val.split(',');
